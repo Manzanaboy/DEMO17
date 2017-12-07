@@ -304,8 +304,6 @@ static void grille(int tab[][NB_INFO_PERS], int n, int nbp){
 					printf("_");
 					break;
 				case INCUB:
-					printf("I");
-					break;
 				case NORMAL:
 					printf("N");
 					break;
@@ -393,8 +391,8 @@ static int allerVersBut(int tab[][NB_INFO_PERS], int nbp, int depx, int depy, in
 static int bloquage(int tab[][NB_INFO_PERS], int posx, int posy, int nbp, int i, int n){
 	int depx;
 	int depy;
-	for (int k= -1;k<=1;k++){
-		for (int j=-1;j<=1;j++){
+	for (int k= GAUCHE;k<=DROITE;k++){
+		for (int j=HAUT;j<=BAS;j++){
 			depx = posx + k;
 			depy = posy + j;
 			depx = rebouclement(depx,n);
