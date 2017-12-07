@@ -75,23 +75,72 @@ static void erreur_indice_ligne_colonne(int indice, int indicePersonne);
  */
 static void erreur_superposition(int indiceP_A, int indiceP_B);
 
-static int lireVrebose();
+static int lireVerbose();
+/*\brief	Lit l'input verbose.
+ * */
+ 
 static int lireGrille(int verbose);
+/*\brief	Lit et vérifie l'intput pour afficher la grille.
+ * */
+ 
 static int lireSim(int verbose);
+/*\brief	Lit et vérifie l'intput pour du nombre de simulations.
+ * */
+ 
 static int lireMonde(int verbose);
+/*\brief	Lit et vérifie l'intput de la taille du monde.
+ * */
+ 
 static int lirenbp(int verbose, int n);
+/*\brief	Lit et vérifie l'intput du nombre de personnes.
+ * */
+ 
 static void placerPers(int grandTab[][NB_INFO_PERS], int verbose,  int n, int nbp);
-static void print(int tab[], int a);
+/*\brief	Lit et vérifie l'intput des personnes et les place 
+ * 			dans grandTab.
+ * */
+
 static int rebouclement(int x,int n);
+/*\brief	Vérifie une position et la change si besoins.
+ * */
 static void grille(int tab[][NB_INFO_PERS], int n, int nbp);
+/*\brief	Affiche la grille du monde avec les personnes à l'intérieur.
+ * */
 static int libre(int tab[][NB_INFO_PERS], int nbp, int x, int y);
+/*\brief	Vérifie si une la case (x,y) est occupée.
+ * */
 static void nouvBut(int n, int tab[][NB_INFO_PERS], int i);
+/*\brief	Cherche aléatoirement un nouveau but.
+ * */
 static void move(int n, int tab[][NB_INFO_PERS], int nbp, int i);
+/*\brief	Deplace la personne d'indice i selon son but et dans la 
+ * 			mesure du possible ou lui attribue un nouveau but.
+ * */
 static void contamine(int tab[][NB_INFO_PERS], int i, int nbp, int n);
+/*\brief	Vérifie si la personne d'indice i contamine les personnes
+ * 			à ses alentours si elle est contaminée. Si elle est 
+ * 			non-contaminée et non-vaccinée alors la fonction vérifie
+ * 			si cette personne est contaminée par ses voisines.
+ * */
 static void mergemoi(int tab[],int liun[], int lide[], int tun, int tde);
+/*\brief	Met les valeurs de deux listes liun et lide de longeurs 
+ * 			respectives tun et tde déjà triés dans une troisième liste
+ * 			tab de manière à ce que les éléments de tab soient triés.
+ * */
 static void msort(int tab[], int l);
+/*\brief	Trie la liste tab de longueur l selon le principe du 
+ * 			mergesort.
+ * */
 static int simul(int tab[][NB_INFO_PERS], int n, int nbp, int afG, int nbvacc);
-static void regroupe(int tab[][NB_INFO_PERS], int tailleRes, int n, int nbp, int afG, int nbSim);
+/*\brief	Crée une simulation de contamination avec un nombre de 
+ * 			personnes donnés et un nombre de personnes vaccinées dans
+ * 			un monde de taille n et affiche la grille si besoins.
+ * */
+static void regroupe(int tab[][NB_INFO_PERS], int n, int nbp, int afG, int nbSim);
+/*\brief	regroupe tous les contextes possibles et fait nbSim nombre
+ * 			de simulations pour chacun. trie les resultats et affiche
+ * 			la valeur mediane du nombre de cycles.
+ * */
 // ############################ END ##################################
 
 // *******************************************************************
@@ -107,7 +156,7 @@ int main(void)
 {
 	//rendu 1
 	int nbSim, n, nbp, afG;
-	verbose = lireVrebose();
+	verbose = lireVerbose();
 	afG = lireGrille(verbose);
 	nbSim = lireSim(verbose);
 	n = lireMonde(verbose);
@@ -116,18 +165,14 @@ int main(void)
 	placerPers(grandTab, verbose, n, nbp);
 	
 	//simulations
-	int tailleRes=0;
-	for (int k=nbp; k>1; k--){ 
-		tailleRes = tailleRes + (k-1);
-		}
-	regroupe(grandTab, tailleRes, n, nbp, afG, nbSim);
+	regroupe(grandTab, n, nbp, afG, nbSim);
 	return EXIT_SUCCESS;
 }
 
 // *******************************************************************
 //              ***        mes fonctions        ***
 // *******************************************************************
-static int lireVrebose(){
+static int lireVerbose(){
 	int reponse;
 	scanf("%d", &reponse);
 	if(reponse==0){
@@ -329,43 +374,41 @@ static int shortest(int position, int but, int n){
 	}
 
 static int allerVersBut(int tab[][NB_INFO_PERS], int nbp, int depx, int depy, int i){
-	int dep=0;
 	if (!libre(tab,nbp,depx,depy)){
 		tab[i][LIGNEPERS] =depx;
 		tab[i][COLPERS] =depy;
-		dep=1;
+		return 1;
 		}
-	else if (!libre(tab,nbp,depx,tab[i][COLPERS])){
+	if (!libre(tab,nbp,depx,tab[i][COLPERS])){
 		tab[i][LIGNEPERS] =depx;
-		dep=1;
+		return 1;
 		}	
-	else if (!libre(tab,nbp,tab[i][LIGNEPERS],depy)){
+	if (!libre(tab,nbp,tab[i][LIGNEPERS],depy)){
 		tab[i][COLPERS] =depy;
-		dep=1;
+		return 1;
 		}
-	return dep;
+	return 0;
 	}
 
 static int bloquage(int tab[][NB_INFO_PERS], int posx, int posy, int nbp, int i, int n){
 	int depx;
 	int depy;
-	int dep = 0;
-	for (int k=GAUCHE;k<=DROITE;k++){
-		for (int j=HAUT;j<=BAS;j++){
+	for (int k= -1;k<=1;k++){
+		for (int j=-1;j<=1;j++){
 			depx = posx + k;
 			depy = posy + j;
 			depx = rebouclement(depx,n);
 			depy = rebouclement(depy,n);
-			if(!(k == j && k == 0)){
+			if(!(k == 0 && j == 0)){
 				if (!libre(tab, nbp, depx, depy)){
 					tab[i][LIGNEPERS] = depx;
 					tab[i][COLPERS] = depy;
-					dep = 1;
+					return 1;
 					}
 				}
 			}
 		}
-	return dep;
+	return 0;
 	}
 
 static void move(int n, int tab[][NB_INFO_PERS], int nbp, int i){
@@ -501,7 +544,7 @@ static int simul(int tab[][NB_INFO_PERS], int n, int nbp, int afG, int nbvacc){
 	return nbCycle;
 	}
 
-static void regroupe(int tab[][NB_INFO_PERS], int tailleRes, int n, int nbp, int afG, int nbSim){
+static void regroupe(int tab[][NB_INFO_PERS], int n, int nbp, int afG, int nbSim){
 	int nbpSim, nbpVacc, k, l, m;
 	float compte;
 	int tabde[nbp][NB_INFO_PERS];
